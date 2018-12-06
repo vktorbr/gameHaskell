@@ -7,6 +7,8 @@ import Graphics.Gloss
 --import Graphics.Gloss.Data.ViewPort
 import Graphics.Gloss.Interface.Pure.Game
 
+import FuncoesAux
+
 width, height, offset :: Int
 width = 800
 height = 500
@@ -15,20 +17,15 @@ offset = 250
 data EstadoJogo = Game
  {
     pontos :: Float
- ,  nivel :: Int
+ ,  nivel :: Float
  ,  texto :: String
  ,  start :: Bool
  ,  posicaoBloco :: Float
+ ,  tempo :: Float
+ ,  tempoInicio :: Float
+ ,  posicaoInim :: Float
+ , criarIni :: Bool
  }
-
-toInt :: Float -> Int
-toInt x = round x
-
-posBlocoLim :: Float -> Float
-posBlocoLim x 
- | x >= 400 = 390
- | x <= (-400) = (-390)
- | otherwise = x
 
 window :: Display
 window = InWindow "Dodger" (width,height) (offset,offset)
@@ -44,7 +41,8 @@ drawing game
 estadoRodando :: EstadoJogo -> Picture
 estadoRodando game = pictures [
         bloco,
-        pontoAtual
+        pontoAtual,
+        inimigos
     ]
     where
         bloco = 
@@ -52,13 +50,18 @@ estadoRodando game = pictures [
             Color blue $
             rectangleSolid 50 50
         
-        pontuacao = toInt ((pontos game) / 10)
+        pontuacao = (tempo game)--toInt ((tempo game) / 10)
 
         pontoAtual =
             translate 280 180 $
             Scale 0.5 0.5 $
             Color red $
             Text (show pontuacao) 
+        
+        posIniX = 0
+
+        inimigos = translate (posicaoInim game) (300 - (tempoInicio game)) $ Color red $ circleSolid 30
+
 
 menu :: EstadoJogo -> Picture
 menu game = pictures [
@@ -89,23 +92,28 @@ fps = 60
 
 estadoInicial :: EstadoJogo
 estadoInicial = Game {
-       pontos = 0
-    ,  nivel = 1
+      pontos = 0
+    , nivel = 1
     , texto = "pontuacao = 0"
     , start = False
     , posicaoBloco = (-150)
+    , tempo =0
+    , tempoInicio =0
+    , posicaoInim = 0
+    , criarIni = False
     }
 
 
 evento :: Event -> EstadoJogo -> EstadoJogo
-evento (EventKey (SpecialKey KeySpace) _ _ _) game = game {posicaoBloco = 0,start = True}
+evento (EventKey (SpecialKey KeySpace) _ _ _) game = game {posicaoBloco = 0, pontos = 0, posicaoInim = (toFloat((mod (toInt(tempo game) * 100) 800)-400)), tempoInicio =0, start = True}
 evento (EventKey (Char 'p') _ _ _) game = game {start = False}
+evento (EventKey (Char 'q') _ _ _) game = game {nivel = (nivel game) + 1}
 evento (EventKey (SpecialKey KeyLeft) _ _ _) game = game { posicaoBloco = posBlocoLim(((posicaoBloco game) - 10))}
 evento (EventKey (SpecialKey KeyRight) _ _ _) game = game { posicaoBloco = posBlocoLim(((posicaoBloco game) + 10))}
 evento _ game = game
 
 atualizar :: Float -> EstadoJogo -> EstadoJogo
-atualizar n game = game {pontos = (pontos game) +1 }
+atualizar n game = game {pontos = (pontos game) +1 , tempo = (tempo game) + n, tempoInicio = (tempoInicio game) + 1}
 
 main :: IO ()
 main = play window background fps estadoInicial drawing evento atualizar
