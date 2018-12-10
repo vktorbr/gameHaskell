@@ -2,7 +2,7 @@
 -- documentation, see http://haskell.org/cabal/users-guide/
 
 name:                BallVSSquare
-version:             1.0.0
+version:             1.0.1
 synopsis:            Jogo para pegar as bolas que caem
 -- description:         
 homepage:            https://github.com/vms101/gameHaskell

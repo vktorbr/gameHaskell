@@ -10,7 +10,7 @@ cabal run
 
 O jogo:
 ```bash
-Dodger é um jogo em que você terá que fazer o quadrado pegar as bolas que estão caindo (uma por vez)
+BallVSSquare é um jogo em que você terá que fazer o quadrado pegar as bolas que estão caindo (uma por vez)
 Com o avançar dos pontos, aumentará o nível e as bolas cairão mais rapidamente
 Ele termina quando você deixa uma bola passar pelo quadrado sem pegar
 ```
