@@ -12,7 +12,8 @@ module FuncoesAux (
     colidir,
     moverX,
     moverY,
-    geradorPosX
+    geradorPosX,
+    perder
 ) where
 
 import Graphics.Gloss
@@ -39,8 +40,8 @@ posIniX :: Float
 posIniX = 0
 
 posIniLim :: Float -> Bool
-posIniLim x
- | x <= (-(toFloat(width)/2)) = True
+posIniLim y
+ | y <= (-(toFloat(height)/2)) = True
  | otherwise = False
 
 colidirEixo :: Float -> Float -> Bool
@@ -56,4 +57,7 @@ moverY :: Point -> Float -> Point
 moverY (x,y) n = (x,300-n)
    
 geradorPosX :: Float -> Float
-geradorPosX t = (toFloat((mod (toInt(t) * 100) 800)-400))
+geradorPosX t = (toFloat((mod (toInt(t) * 127) 800)-400))
+
+perder :: Point -> Bool
+perder (x,y) = posIniLim y

@@ -8,17 +8,15 @@ import FuncoesAux
 
 data EstadoJogo = Game
  {
-    pontos :: Float
+    pontos :: Int
  ,  nivel :: Float
  ,  texto :: String
  ,  start :: Bool
  ,  fim :: Bool
  ,  posicaoBloco :: Point
  ,  tempo :: Float
- ,  tempoInicio :: Float
+ ,  contadorPosInimigo :: Float
  ,  posicaoInim :: Point
- ,  gerarInimigoPosX :: Float
- ,  criarIni :: Bool
  ,  irEsquerda :: Bool
  ,  irDireita :: Bool
  }
@@ -49,7 +47,7 @@ estadoRodando game = pictures [
         inimigos
     ]
     where
-        --game{posicaoBloco = (x, y)}
+
         bloco = 
             translate x y $
             Color blue $
@@ -57,13 +55,11 @@ estadoRodando game = pictures [
             where 
                 (x,y) = (posicaoBloco game)
         
-        pontuacao = (tempo game)--toInt ((tempo game) / 10)
-
         pontoAtual =
             translate 280 180 $
             Scale 0.5 0.5 $
             Color red $
-            Text (show pontuacao) 
+            Text (show (pontos game)) 
         
         posIniX = 0
 
@@ -111,19 +107,15 @@ estadoInicial = Game {
     , fim = False
     , posicaoBloco = ((-150),(-200))
     , tempo =0
-    , tempoInicio =0
+    , contadorPosInimigo =0
     , posicaoInim = (0,300)
-    , gerarInimigoPosX = 0
-    , criarIni = False
     , irEsquerda = False
     , irDireita = False
     }
 
-
 evento :: Event -> EstadoJogo -> EstadoJogo
-evento (EventKey (SpecialKey KeySpace) (Down) _ _) game = game {posicaoBloco = ((-150),(-200)), pontos = 0, gerarInimigoPosX = geradorPosX (tempo game), posicaoInim = ((gerarInimigoPosX game),300), tempoInicio =0, start = True, tempo = 0}
-evento (EventKey (Char 'p') _ _ _) game = game {start = False}
-evento (EventKey (Char 'q') _ _ _) game = game {nivel = (nivel game) + 1}
+evento (EventKey (SpecialKey KeySpace) (Down) _ _) game = game {posicaoBloco = ((-150),(-200)), pontos = 0, posicaoInim = ((geradorPosX (tempo game),300)), contadorPosInimigo =0, start = True}
+--evento (EventKey (Char 'p') _ _ _) game = game {start = False}
 evento (EventKey (SpecialKey KeyLeft) (Down) _ _) game = game {irEsquerda = True}
 evento (EventKey (SpecialKey KeyLeft) (Up) _ _) game = game {irEsquerda = False}
 evento (EventKey (SpecialKey KeyRight) (Down) _ _) game = game {irDireita = True}
@@ -134,16 +126,20 @@ atualizar :: Float -> EstadoJogo -> EstadoJogo
 atualizar n game = 
     if (fim game)
         then game
-        else if (colidir (posicaoBloco game) (posicaoInim game))
-            then game {fim = True, start = False}
-        else if (irEsquerda game)
-            then game {pontos = (pontos game) +1 , tempo = (tempo game) + n, tempoInicio = (tempoInicio game) + 1, posicaoBloco = (moverX (posicaoBloco game) (-2)), posicaoInim = moverY (posicaoInim game) (tempoInicio game)}
-        else if (irDireita game)
-            then game {pontos = (pontos game) +1 , tempo = (tempo game) + n, tempoInicio = (tempoInicio game) + 1, posicaoBloco = (moverX (posicaoBloco game) (2)), posicaoInim = moverY (posicaoInim game) (tempoInicio game)}
-        else if (start game)==False
-            then game
-        else
-            game {pontos = (pontos game) +1 , tempo = (tempo game) + n, tempoInicio = (tempoInicio game) + 1, posicaoInim = moverY (posicaoInim game) (tempoInicio game)}
+    else if (colidir (posicaoBloco game) (posicaoInim game))
+        then game {tempo = (tempo game) + n, contadorPosInimigo = 0, pontos = (pontos game) +1, posicaoInim = ((geradorPosX (tempo game)),300)}
+    else if (perder (posicaoInim game))
+        then game {tempo = (tempo game) + n, fim = True, start = False}
+    else if (irEsquerda game)
+        then game { tempo = (tempo game) + n, contadorPosInimigo = (contadorPosInimigo game) + 1, posicaoBloco = (moverX (posicaoBloco game) (-2)), posicaoInim = moverY (posicaoInim game) ((contadorPosInimigo game)*(nivel game))}
+    else if (irDireita game)
+        then game {tempo = (tempo game) + n, contadorPosInimigo = (contadorPosInimigo game) + 1, posicaoBloco = (moverX (posicaoBloco game) (2)), posicaoInim = moverY (posicaoInim game) ((contadorPosInimigo game)*(nivel game))}
+    else if (start game)==False
+        then game {tempo = (tempo game) + n}
+    else if ((toFloat(pontos game)/(nivel game))>=5)
+        then game {tempo = (tempo game) + n, nivel = (nivel game) + 1}
+    else
+        game {tempo = (tempo game) + n, contadorPosInimigo = (contadorPosInimigo game) + 1, posicaoInim = moverY (posicaoInim game) ((contadorPosInimigo game)*(nivel game))}
 
 
 main :: IO ()
