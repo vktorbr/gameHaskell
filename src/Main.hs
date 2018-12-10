@@ -7,6 +7,7 @@ import Control.Concurrent
 
 --Pacote proprio das funções auxiliares
 import FuncoesAux
+import FuncoesFrames
 
 data EstadoJogo = Game
  {
@@ -39,16 +40,10 @@ fimJogo :: EstadoJogo -> IO Picture
 fimJogo game = do
     return(fots)
     where
-    fots = pictures [
-            translate (-300) 0 $
-            Scale 0.7 0.7 $
-            Color red $
-            Text "Fim de jogo!!",
-            translate (-200) (-200) $
-            Scale 0.2 0.2 $
-            Color orange $
-            Text "Aperte \" r \" para voltar ou menu"
-        ]
+        fots = pictures [
+                    textoFim,
+                    textoVoltar
+                ]
         
 
 estadoRodando :: EstadoJogo -> IO Picture
@@ -56,30 +51,10 @@ estadoRodando game = do
     return(fotos)
     where
         fotos = pictures [
-                    bloco,
-                    pontoAtual,
-                    inimigos
+                    bloco (posicaoBloco game),
+                    pontoAtual (pontos game),
+                    inimigos (posicaoInim game)
                 ]
-        bloco = 
-            translate x y $
-            Color blue $
-            rectangleSolid 50 50
-            where 
-                (x,y) = (posicaoBloco game)
-        
-        pontoAtual =
-            translate 280 180 $
-            Scale 0.5 0.5 $
-            Color green $
-            Text (show (pontos game)) 
-        
-        inimigos = 
-            translate xInimigo yInimigo $ 
-            Color red $ 
-            circleSolid 20
-            where
-                (xInimigo, yInimigo) = (posicaoInim game)
-
 
 menu :: EstadoJogo -> IO Picture
 menu game = do
@@ -87,25 +62,9 @@ menu game = do
     where
         fot = pictures [
                     nomeJogo ,
-                    pontuacao ,
+                    pontuacao (recorde game) ,
                     botaoInicial 
-                ]   
-        nomeJogo = 
-            translate (-150) 150 $
-            Scale 0.7 0.7 $
-            Color red $
-            Text "Dodger" 
-        
-        pontuacao = 
-            translate (-100) 0 $
-            Scale 0.2 0.2 $
-            Color orange $
-            Text ("Recorde: " ++ show(recorde game)) 
-        
-        botaoInicial = translate 0 (-150) $ pictures [
-            translate (-20) 0 $ rectangleSolid 450 50,
-            translate (-225) (-10) $ Scale 0.2 0.2 $ Color red $ Text "aperte space bar para comecar"
-            ]
+                ]
 
 fps :: Int
 fps = 60
