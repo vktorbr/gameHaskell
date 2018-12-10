@@ -3,6 +3,7 @@ module Main where
 --Pacote Gloss para fazer o jogo 2D
 import Graphics.Gloss
 import Graphics.Gloss.Interface.Pure.Game
+import Control.Concurrent
 
 --Pacote proprio das funções auxiliares
 import FuncoesAux
@@ -73,8 +74,6 @@ estadoRodando game = pictures [
             Color green $
             Text (show (pontos game)) 
         
-        posIniX = 0
-
         inimigos = 
             translate xInimigo yInimigo $ 
             Color red $ 
@@ -127,9 +126,9 @@ estadoInicial = Game {
     }
 
 evento :: Event -> EstadoJogo -> EstadoJogo
-evento (EventKey (SpecialKey KeySpace) (Down) _ _) game = game {posicaoBloco = (0,(-200)), pontos = 0, posicaoInim = ((geradorPosX (tempo game),300)), contadorPosInimigo =0, start = True}
+evento (EventKey (SpecialKey KeySpace) (Down) _ _) game = game {posicaoBloco = (0,(-200)), pontos = 0, posicaoInim = (geradorPosX (tempo game),300), contadorPosInimigo =0, start = True}
 --evento (EventKey (Char 'p') _ _ _) game = game {start = False}
-evento (EventKey (Char 'r') _ _ _) game = game {start = False, fim = False, recorde = max (recorde game) (pontos game)}
+evento (EventKey (Char 'r') (Down) _ _) game = game {start = False, fim = False, recorde = max (recorde game) (pontos game)}
 evento (EventKey (SpecialKey KeyLeft) (Down) _ _) game = game {irEsquerda = True}
 evento (EventKey (SpecialKey KeyLeft) (Up) _ _) game = game {irEsquerda = False}
 evento (EventKey (SpecialKey KeyRight) (Down) _ _) game = game {irDireita = True}
@@ -157,4 +156,5 @@ atualizar n game =
 
 
 main :: IO ()
-main = play window background fps estadoInicial drawing evento atualizar
+main = do
+    play window background fps estadoInicial drawing evento atualizar
