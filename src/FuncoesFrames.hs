@@ -57,10 +57,10 @@ nivelAtual nivel =
     Text ("Nivel " ++ (show nivel))
 
 nomeJogo = 
-    translate (-150) 150 $
+    translate (-325) 150 $
     Scale 0.7 0.7 $
     Color red $
-    Text "Dodger" 
+    Text "Ball vs Square" 
 
 pontuacao recorde = 
     translate (-100) 0 $

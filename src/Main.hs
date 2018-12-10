@@ -39,9 +39,10 @@ speedVisualizar vel = do
 speedAlimentar :: MVar Float -> IO ()
 speedAlimentar vel = do
     s <- takeMVar vel
-    if s<=95
-        then do
-            putMVar vel (s+5)
+    if s<=99
+        then if s>95
+            then putMVar vel 100
+            else putMVar vel (s+5)
         else do
             putMVar vel s
     threadDelay 1000000
@@ -60,7 +61,7 @@ speeder vel = do
             return 0
 
 window :: Display
-window = InWindow "Dodger" (width,height) (offset,offset)
+window = InWindow "BallVSSquare" (width,height) (offset,offset)
 
 background :: Color
 background = black
