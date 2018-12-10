@@ -26,17 +26,31 @@ data EstadoJogo = Game
  ,  speedAtivado :: Bool
  }
 
-speeder :: MVar Float -> IO Float
-speeder vel =  do
+varSpeed :: String
+varSpeed = ""
+
+speedAlimentar :: MVar Float -> IO ()
+speedAlimentar vel = do
     s <- takeMVar vel
-    if s>90
+    if s<95
+        then do
+            putMVar vel (s+5)
+        else do
+            putMVar vel s
+    threadDelay 1000000
+    speedAlimentar vel
+
+
+speeder :: MVar Float -> IO Float
+speeder vel = do
+    s <- takeMVar vel
+    if s>0
         then do
             putMVar vel (s-1)
             return 1
         else do
             putMVar vel s
             return 0
-
 
 window :: Display
 window = InWindow "Dodger" (width,height) (offset,offset)
@@ -67,6 +81,7 @@ estadoRodando game = do
         fotos = pictures [
                     bloco (posicaoBloco game),
                     pontoAtual (pontos game),
+                    speedAtual (varSpeed),
                     inimigos (posicaoInim game)
                 ]
 
@@ -124,11 +139,11 @@ atualizar speed n game = do
                 else if (perder (posicaoInim game))
                     then game {tempo = (tempo game) + n, fim = True, start = False, contadorPosInimigo = 0, posicaoInim = ((geradorPosX (tempo game)),300)}
                 else if ((irEsquerda game) && (speedAtivado game))
-                    then game { tempo = (tempo game) + n, contadorPosInimigo = (contadorPosInimigo game) + 1, posicaoBloco = (moverX (posicaoBloco game) ((-2)*(unsafePerformIO (speeder speed))+1)), posicaoInim = moverY (posicaoInim game) ((contadorPosInimigo game)*(nivel game))}
+                    then game { tempo = (tempo game) + n, contadorPosInimigo = (contadorPosInimigo game) + 1, posicaoBloco = (moverX (posicaoBloco game) ((-2)*((unsafePerformIO (speeder speed))+1))), posicaoInim = moverY (posicaoInim game) ((contadorPosInimigo game)*(nivel game))}
                 else if (irEsquerda game)
                     then game { tempo = (tempo game) + n, contadorPosInimigo = (contadorPosInimigo game) + 1, posicaoBloco = (moverX (posicaoBloco game) (-2)), posicaoInim = moverY (posicaoInim game) ((contadorPosInimigo game)*(nivel game))}
                 else if ((irDireita game) && (speedAtivado game))
-                    then game { tempo = (tempo game) + n, contadorPosInimigo = (contadorPosInimigo game) + 1, posicaoBloco = (moverX (posicaoBloco game) ((2)*(unsafePerformIO (speeder speed))+1)), posicaoInim = moverY (posicaoInim game) ((contadorPosInimigo game)*(nivel game))}
+                    then game { tempo = (tempo game) + n, contadorPosInimigo = (contadorPosInimigo game) + 1, posicaoBloco = (moverX (posicaoBloco game) ((2)*((unsafePerformIO (speeder speed))+1))), posicaoInim = moverY (posicaoInim game) ((contadorPosInimigo game)*(nivel game))}
                 else if (irDireita game)
                     then game {tempo = (tempo game) + n, contadorPosInimigo = (contadorPosInimigo game) + 1, posicaoBloco = (moverX (posicaoBloco game) (2)), posicaoInim = moverY (posicaoInim game) ((contadorPosInimigo game)*(nivel game))}
                 else if (start game)==False
@@ -142,5 +157,6 @@ atualizar speed n game = do
 main :: IO ()
 main = do
     speed <- newMVar 100
+    forkIO $ speedAlimentar speed
     playIO window background fps estadoInicial drawing evento (atualizar speed)
     --putStrLn show recordeMVar

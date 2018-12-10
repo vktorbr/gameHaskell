@@ -4,6 +4,7 @@ module FuncoesFrames(
     textoVoltar,
     bloco,
     pontoAtual,
+    speedAtual,
     inimigos,
     nomeJogo,
     pontuacao,
@@ -34,6 +35,12 @@ pontoAtual pontos =
     Scale 0.5 0.5 $
     Color green $
     Text (show pontos) 
+
+speedAtual speed =
+    translate (-280) 180 $
+    Scale 0.5 0.5 $
+    Color green $
+    Text (show speed) 
 
 inimigos posicaoInim = 
     translate xInimigo yInimigo $ 
