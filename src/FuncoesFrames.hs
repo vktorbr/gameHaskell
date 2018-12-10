@@ -5,6 +5,7 @@ module FuncoesFrames(
     bloco,
     pontoAtual,
     speedAtual,
+    nivelAtual,
     inimigos,
     nomeJogo,
     pontuacao,
@@ -21,7 +22,7 @@ textoFim = translate (-300) 0 $
 textoVoltar = translate (-200) (-200) $
     Scale 0.2 0.2 $
     Color orange $
-    Text "Aperte \" r \" para voltar ou menu"
+    Text "Aperte r para voltar ao menu"
 
 bloco posicaoBloco = 
     translate x y $
@@ -31,13 +32,13 @@ bloco posicaoBloco =
         (x,y) = posicaoBloco
 
 pontoAtual pontos =
-    translate 280 180 $
+    translate 350 180 $
     Scale 0.5 0.5 $
     Color green $
     Text (show pontos) 
 
 speedAtual speed =
-    translate (-280) 180 $
+    translate (-350) 180 $
     Scale 0.5 0.5 $
     Color green $
     Text (show speed) 
@@ -48,6 +49,12 @@ inimigos posicaoInim =
     circleSolid 20
     where
         (xInimigo, yInimigo) = posicaoInim
+
+nivelAtual nivel = 
+    translate (-100) 180 $
+    Scale 0.5 0.5 $
+    Color green $
+    Text ("Nivel " ++ (show nivel))
 
 nomeJogo = 
     translate (-150) 150 $

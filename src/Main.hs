@@ -24,15 +24,22 @@ data EstadoJogo = Game
  ,  irEsquerda :: Bool
  ,  irDireita :: Bool
  ,  speedAtivado :: Bool
+ ,  sp :: Float
  }
 
-varSpeed :: String
-varSpeed = ""
+varSpeed :: Float
+varSpeed = 100
+
+speedVisualizar:: MVar Float -> IO Float
+speedVisualizar vel = do
+    s <- takeMVar vel
+    putMVar vel s
+    return s
 
 speedAlimentar :: MVar Float -> IO ()
 speedAlimentar vel = do
     s <- takeMVar vel
-    if s<95
+    if s<=95
         then do
             putMVar vel (s+5)
         else do
@@ -81,7 +88,8 @@ estadoRodando game = do
         fotos = pictures [
                     bloco (posicaoBloco game),
                     pontoAtual (pontos game),
-                    speedAtual (varSpeed),
+                    speedAtual (toInt(sp game)),
+                    nivelAtual (toInt(nivel game)),
                     inimigos (posicaoInim game)
                 ]
 
@@ -112,6 +120,7 @@ estadoInicial = Game {
     , irEsquerda = False
     , irDireita = False
     , speedAtivado = False
+    , sp = 100
     }
 
 evento :: Event -> EstadoJogo -> IO EstadoJogo
@@ -139,19 +148,19 @@ atualizar speed n game = do
                 else if (perder (posicaoInim game))
                     then game {tempo = (tempo game) + n, fim = True, start = False, contadorPosInimigo = 0, posicaoInim = ((geradorPosX (tempo game)),300)}
                 else if ((irEsquerda game) && (speedAtivado game))
-                    then game { tempo = (tempo game) + n, contadorPosInimigo = (contadorPosInimigo game) + 1, posicaoBloco = (moverX (posicaoBloco game) ((-2)*((unsafePerformIO (speeder speed))+1))), posicaoInim = moverY (posicaoInim game) ((contadorPosInimigo game)*(nivel game))}
+                    then game { tempo = (tempo game) + n, contadorPosInimigo = (contadorPosInimigo game) + 1, posicaoBloco = (moverX (posicaoBloco game) ((-2)*((unsafePerformIO (speeder speed))+1))), posicaoInim = moverY (posicaoInim game) ((contadorPosInimigo game)*(nivel game)), sp = (unsafePerformIO(speedVisualizar speed))}
                 else if (irEsquerda game)
-                    then game { tempo = (tempo game) + n, contadorPosInimigo = (contadorPosInimigo game) + 1, posicaoBloco = (moverX (posicaoBloco game) (-2)), posicaoInim = moverY (posicaoInim game) ((contadorPosInimigo game)*(nivel game))}
+                    then game { tempo = (tempo game) + n, contadorPosInimigo = (contadorPosInimigo game) + 1, posicaoBloco = (moverX (posicaoBloco game) (-2)), posicaoInim = moverY (posicaoInim game) ((contadorPosInimigo game)*(nivel game)), sp = (unsafePerformIO(speedVisualizar speed))}
                 else if ((irDireita game) && (speedAtivado game))
-                    then game { tempo = (tempo game) + n, contadorPosInimigo = (contadorPosInimigo game) + 1, posicaoBloco = (moverX (posicaoBloco game) ((2)*((unsafePerformIO (speeder speed))+1))), posicaoInim = moverY (posicaoInim game) ((contadorPosInimigo game)*(nivel game))}
+                    then game { tempo = (tempo game) + n, contadorPosInimigo = (contadorPosInimigo game) + 1, posicaoBloco = (moverX (posicaoBloco game) ((2)*((unsafePerformIO (speeder speed))+1))), posicaoInim = moverY (posicaoInim game) ((contadorPosInimigo game)*(nivel game)), sp = (unsafePerformIO(speedVisualizar speed))}
                 else if (irDireita game)
-                    then game {tempo = (tempo game) + n, contadorPosInimigo = (contadorPosInimigo game) + 1, posicaoBloco = (moverX (posicaoBloco game) (2)), posicaoInim = moverY (posicaoInim game) ((contadorPosInimigo game)*(nivel game))}
+                    then game {tempo = (tempo game) + n, contadorPosInimigo = (contadorPosInimigo game) + 1, posicaoBloco = (moverX (posicaoBloco game) (2)), posicaoInim = moverY (posicaoInim game) ((contadorPosInimigo game)*(nivel game)), sp = (unsafePerformIO(speedVisualizar speed))}
                 else if (start game)==False
                     then game {tempo = (tempo game) + n}
                 else if ((toFloat(pontos game)/(nivel game))>=5)
                     then game {tempo = (tempo game) + n, nivel = (nivel game) + 1}
                 else
-                    game {tempo = (tempo game) + n, contadorPosInimigo = (contadorPosInimigo game) + 1, posicaoInim = moverY (posicaoInim game) ((contadorPosInimigo game)*(nivel game))}
+                    game {tempo = (tempo game) + n, contadorPosInimigo = (contadorPosInimigo game) + 1, posicaoInim = moverY (posicaoInim game) ((contadorPosInimigo game)*(nivel game)), sp = (unsafePerformIO(speedVisualizar speed))}
 
 
 main :: IO ()
