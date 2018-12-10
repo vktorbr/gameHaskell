@@ -4,6 +4,7 @@ module Main where
 import Graphics.Gloss
 import Graphics.Gloss.Interface.IO.Game
 import Control.Concurrent
+import System.IO.Unsafe
 
 --Pacote proprio das funções auxiliares
 import FuncoesAux
@@ -22,7 +23,20 @@ data EstadoJogo = Game
  ,  posicaoInim :: Point
  ,  irEsquerda :: Bool
  ,  irDireita :: Bool
+ ,  speedAtivado :: Bool
  }
+
+speeder :: MVar Float -> IO Float
+speeder vel =  do
+    s <- takeMVar vel
+    if s>90
+        then do
+            putMVar vel (s-1)
+            return 1
+        else do
+            putMVar vel s
+            return 0
+
 
 window :: Display
 window = InWindow "Dodger" (width,height) (offset,offset)
@@ -82,20 +96,25 @@ estadoInicial = Game {
     , posicaoInim = (0,300)
     , irEsquerda = False
     , irDireita = False
+    , speedAtivado = False
     }
 
 evento :: Event -> EstadoJogo -> IO EstadoJogo
-evento (EventKey (SpecialKey KeySpace) (Down) _ _) game = return game {posicaoBloco = (0,(-200)), pontos = 0, posicaoInim = (geradorPosX (tempo game),300), contadorPosInimigo =0, start = True}
+evento (EventKey (SpecialKey KeySpace) (Down) _ _) game = return game {posicaoBloco = (0,(-200)), pontos = 0, posicaoInim = (geradorPosX (tempo game),300), contadorPosInimigo =0, start = True, nivel = 1}
 evento (EventKey (Char 'p') _ _ _) game = do return game {start = False}
 evento (EventKey (Char 'r') (Down) _ _) game = do return game {start = False, fim = False, recorde = max (recorde game) (pontos game)}
 evento (EventKey (SpecialKey KeyLeft) (Down) _ _) game = do return game {irEsquerda = True}
 evento (EventKey (SpecialKey KeyLeft) (Up) _ _) game = do return game {irEsquerda = False}
 evento (EventKey (SpecialKey KeyRight) (Down) _ _) game = do return game {irDireita = True}
 evento (EventKey (SpecialKey KeyRight) (Up) _ _) game = do return game {irDireita = False}
+evento (EventKey (SpecialKey KeyShiftL) (Down) _ _) game = do return game {speedAtivado = True}
+evento (EventKey (SpecialKey KeyShiftR) (Down) _ _) game = do return game {speedAtivado = True}
+evento (EventKey (SpecialKey KeyShiftL) (Up) _ _) game = do return game {speedAtivado = False}
+evento (EventKey (SpecialKey KeyShiftR) (Up) _ _) game = do return game {speedAtivado = False}
 evento _ game = return game
 
-atualizar :: Float -> EstadoJogo -> IO EstadoJogo
-atualizar n game = do
+atualizar :: MVar Float -> Float -> EstadoJogo -> IO EstadoJogo
+atualizar speed n game = do
     return(jogo)
     where
         jogo =  if (fim game)
@@ -104,8 +123,12 @@ atualizar n game = do
                     then game {tempo = (tempo game) + n, contadorPosInimigo = 0, pontos = (pontos game) +1, posicaoInim = ((geradorPosX (tempo game)),300)}
                 else if (perder (posicaoInim game))
                     then game {tempo = (tempo game) + n, fim = True, start = False, contadorPosInimigo = 0, posicaoInim = ((geradorPosX (tempo game)),300)}
+                else if ((irEsquerda game) && (speedAtivado game))
+                    then game { tempo = (tempo game) + n, contadorPosInimigo = (contadorPosInimigo game) + 1, posicaoBloco = (moverX (posicaoBloco game) ((-2)*(unsafePerformIO (speeder speed))+1)), posicaoInim = moverY (posicaoInim game) ((contadorPosInimigo game)*(nivel game))}
                 else if (irEsquerda game)
                     then game { tempo = (tempo game) + n, contadorPosInimigo = (contadorPosInimigo game) + 1, posicaoBloco = (moverX (posicaoBloco game) (-2)), posicaoInim = moverY (posicaoInim game) ((contadorPosInimigo game)*(nivel game))}
+                else if ((irDireita game) && (speedAtivado game))
+                    then game { tempo = (tempo game) + n, contadorPosInimigo = (contadorPosInimigo game) + 1, posicaoBloco = (moverX (posicaoBloco game) ((2)*(unsafePerformIO (speeder speed))+1)), posicaoInim = moverY (posicaoInim game) ((contadorPosInimigo game)*(nivel game))}
                 else if (irDireita game)
                     then game {tempo = (tempo game) + n, contadorPosInimigo = (contadorPosInimigo game) + 1, posicaoBloco = (moverX (posicaoBloco game) (2)), posicaoInim = moverY (posicaoInim game) ((contadorPosInimigo game)*(nivel game))}
                 else if (start game)==False
@@ -118,6 +141,6 @@ atualizar n game = do
 
 main :: IO ()
 main = do
-    --recordeMVar <- newEmptyMVar
-    playIO window background fps estadoInicial drawing evento atualizar
+    speed <- newMVar 100
+    playIO window background fps estadoInicial drawing evento (atualizar speed)
     --putStrLn show recordeMVar
