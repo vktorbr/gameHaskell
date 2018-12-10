@@ -2,7 +2,7 @@ module Main where
 
 --Pacote Gloss para fazer o jogo 2D
 import Graphics.Gloss
-import Graphics.Gloss.Interface.Pure.Game
+import Graphics.Gloss.Interface.IO.Game
 import Control.Concurrent
 
 --Pacote proprio das funções auxiliares
@@ -29,38 +29,37 @@ window = InWindow "Dodger" (width,height) (offset,offset)
 background :: Color
 background = black
 
-drawing :: EstadoJogo -> Picture
-drawing game 
+drawing :: EstadoJogo -> IO Picture
+drawing game
  | (fim game) == True = fimJogo game
  | (start game) == False = menu game
  | otherwise = estadoRodando game
 
-fimJogo :: EstadoJogo -> Picture
-fimJogo game = pictures [
-        textoFim,
-        textoVoltar
-    ]
+fimJogo :: EstadoJogo -> IO Picture
+fimJogo game = do
+    return(fots)
     where
-        textoFim = 
+    fots = pictures [
             translate (-300) 0 $
             Scale 0.7 0.7 $
             Color red $
-            Text "Fim de jogo!!"
-
-        textoVoltar =
+            Text "Fim de jogo!!",
             translate (-200) (-200) $
             Scale 0.2 0.2 $
             Color orange $
             Text "Aperte \" r \" para voltar ou menu"
+        ]
+        
 
-estadoRodando :: EstadoJogo -> Picture
-estadoRodando game = pictures [
-        bloco,
-        pontoAtual,
-        inimigos
-    ]
+estadoRodando :: EstadoJogo -> IO Picture
+estadoRodando game = do 
+    return(fotos)
     where
-
+        fotos = pictures [
+                    bloco,
+                    pontoAtual,
+                    inimigos
+                ]
         bloco = 
             translate x y $
             Color blue $
@@ -82,14 +81,15 @@ estadoRodando game = pictures [
                 (xInimigo, yInimigo) = (posicaoInim game)
 
 
-menu :: EstadoJogo -> Picture
-menu game = pictures [
-        nomeJogo ,
-        pontuacao ,
-        botaoInicial 
-    ]   
-
+menu :: EstadoJogo -> IO Picture
+menu game = do
+    return(fot)
     where
+        fot = pictures [
+                    nomeJogo ,
+                    pontuacao ,
+                    botaoInicial 
+                ]   
         nomeJogo = 
             translate (-150) 150 $
             Scale 0.7 0.7 $
@@ -125,36 +125,40 @@ estadoInicial = Game {
     , irDireita = False
     }
 
-evento :: Event -> EstadoJogo -> EstadoJogo
-evento (EventKey (SpecialKey KeySpace) (Down) _ _) game = game {posicaoBloco = (0,(-200)), pontos = 0, posicaoInim = (geradorPosX (tempo game),300), contadorPosInimigo =0, start = True}
---evento (EventKey (Char 'p') _ _ _) game = game {start = False}
-evento (EventKey (Char 'r') (Down) _ _) game = game {start = False, fim = False, recorde = max (recorde game) (pontos game)}
-evento (EventKey (SpecialKey KeyLeft) (Down) _ _) game = game {irEsquerda = True}
-evento (EventKey (SpecialKey KeyLeft) (Up) _ _) game = game {irEsquerda = False}
-evento (EventKey (SpecialKey KeyRight) (Down) _ _) game = game {irDireita = True}
-evento (EventKey (SpecialKey KeyRight) (Up) _ _) game = game {irDireita = False}
-evento _ game = game
+evento :: Event -> EstadoJogo -> IO EstadoJogo
+evento (EventKey (SpecialKey KeySpace) (Down) _ _) game = return game {posicaoBloco = (0,(-200)), pontos = 0, posicaoInim = (geradorPosX (tempo game),300), contadorPosInimigo =0, start = True}
+evento (EventKey (Char 'p') _ _ _) game = do return game {start = False}
+evento (EventKey (Char 'r') (Down) _ _) game = do return game {start = False, fim = False, recorde = max (recorde game) (pontos game)}
+evento (EventKey (SpecialKey KeyLeft) (Down) _ _) game = do return game {irEsquerda = True}
+evento (EventKey (SpecialKey KeyLeft) (Up) _ _) game = do return game {irEsquerda = False}
+evento (EventKey (SpecialKey KeyRight) (Down) _ _) game = do return game {irDireita = True}
+evento (EventKey (SpecialKey KeyRight) (Up) _ _) game = do return game {irDireita = False}
+evento _ game = return game
 
-atualizar :: Float -> EstadoJogo -> EstadoJogo
-atualizar n game = 
-    if (fim game)
-        then game
-    else if (colidir (posicaoBloco game) (posicaoInim game))
-        then game {tempo = (tempo game) + n, contadorPosInimigo = 0, pontos = (pontos game) +1, posicaoInim = ((geradorPosX (tempo game)),300)}
-    else if (perder (posicaoInim game))
-        then game {tempo = (tempo game) + n, fim = True, start = False, contadorPosInimigo = 0, posicaoInim = ((geradorPosX (tempo game)),300)}
-    else if (irEsquerda game)
-        then game { tempo = (tempo game) + n, contadorPosInimigo = (contadorPosInimigo game) + 1, posicaoBloco = (moverX (posicaoBloco game) (-2)), posicaoInim = moverY (posicaoInim game) ((contadorPosInimigo game)*(nivel game))}
-    else if (irDireita game)
-        then game {tempo = (tempo game) + n, contadorPosInimigo = (contadorPosInimigo game) + 1, posicaoBloco = (moverX (posicaoBloco game) (2)), posicaoInim = moverY (posicaoInim game) ((contadorPosInimigo game)*(nivel game))}
-    else if (start game)==False
-        then game {tempo = (tempo game) + n}
-    else if ((toFloat(pontos game)/(nivel game))>=5)
-        then game {tempo = (tempo game) + n, nivel = (nivel game) + 1}
-    else
-        game {tempo = (tempo game) + n, contadorPosInimigo = (contadorPosInimigo game) + 1, posicaoInim = moverY (posicaoInim game) ((contadorPosInimigo game)*(nivel game))}
+atualizar :: Float -> EstadoJogo -> IO EstadoJogo
+atualizar n game = do
+    return(jogo)
+    where
+        jogo =  if (fim game)
+                    then game
+                else if (colidir (posicaoBloco game) (posicaoInim game))
+                    then game {tempo = (tempo game) + n, contadorPosInimigo = 0, pontos = (pontos game) +1, posicaoInim = ((geradorPosX (tempo game)),300)}
+                else if (perder (posicaoInim game))
+                    then game {tempo = (tempo game) + n, fim = True, start = False, contadorPosInimigo = 0, posicaoInim = ((geradorPosX (tempo game)),300)}
+                else if (irEsquerda game)
+                    then game { tempo = (tempo game) + n, contadorPosInimigo = (contadorPosInimigo game) + 1, posicaoBloco = (moverX (posicaoBloco game) (-2)), posicaoInim = moverY (posicaoInim game) ((contadorPosInimigo game)*(nivel game))}
+                else if (irDireita game)
+                    then game {tempo = (tempo game) + n, contadorPosInimigo = (contadorPosInimigo game) + 1, posicaoBloco = (moverX (posicaoBloco game) (2)), posicaoInim = moverY (posicaoInim game) ((contadorPosInimigo game)*(nivel game))}
+                else if (start game)==False
+                    then game {tempo = (tempo game) + n}
+                else if ((toFloat(pontos game)/(nivel game))>=5)
+                    then game {tempo = (tempo game) + n, nivel = (nivel game) + 1}
+                else
+                    game {tempo = (tempo game) + n, contadorPosInimigo = (contadorPosInimigo game) + 1, posicaoInim = moverY (posicaoInim game) ((contadorPosInimigo game)*(nivel game))}
 
 
 main :: IO ()
 main = do
-    play window background fps estadoInicial drawing evento atualizar
+    --recordeMVar <- newEmptyMVar
+    playIO window background fps estadoInicial drawing evento atualizar
+    --putStrLn show recordeMVar
