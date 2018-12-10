@@ -4,13 +4,14 @@ module Main where
 import Graphics.Gloss
 import Graphics.Gloss.Interface.Pure.Game
 
+--Pacote proprio das funções auxiliares
 import FuncoesAux
 
 data EstadoJogo = Game
  {
     pontos :: Int
  ,  nivel :: Float
- ,  texto :: String
+ ,  recorde :: Int
  ,  start :: Bool
  ,  fim :: Bool
  ,  posicaoBloco :: Point
@@ -88,7 +89,7 @@ menu game = pictures [
         pontuacao = 
             translate (-100) 0 $
             Scale 0.2 0.2 $
-            Text (texto game) 
+            Text ("Recorde: " ++ show(recorde game)) 
         
         botaoInicial = translate 0 (-150) $ pictures [
             translate (-20) 0 $ rectangleSolid 450 50,
@@ -102,7 +103,7 @@ estadoInicial :: EstadoJogo
 estadoInicial = Game {
       pontos = 0
     , nivel = 1
-    , texto = "pontuacao = 0"
+    , recorde = 0
     , start = False
     , fim = False
     , posicaoBloco = ((-150),(-200))
@@ -116,6 +117,7 @@ estadoInicial = Game {
 evento :: Event -> EstadoJogo -> EstadoJogo
 evento (EventKey (SpecialKey KeySpace) (Down) _ _) game = game {posicaoBloco = ((-150),(-200)), pontos = 0, posicaoInim = ((geradorPosX (tempo game),300)), contadorPosInimigo =0, start = True}
 --evento (EventKey (Char 'p') _ _ _) game = game {start = False}
+evento (EventKey (Char 'r') _ _ _) game = game {start = False, fim = False, recorde = max (recorde game) (pontos game)}
 evento (EventKey (SpecialKey KeyLeft) (Down) _ _) game = game {irEsquerda = True}
 evento (EventKey (SpecialKey KeyLeft) (Up) _ _) game = game {irEsquerda = False}
 evento (EventKey (SpecialKey KeyRight) (Down) _ _) game = game {irDireita = True}
@@ -129,7 +131,7 @@ atualizar n game =
     else if (colidir (posicaoBloco game) (posicaoInim game))
         then game {tempo = (tempo game) + n, contadorPosInimigo = 0, pontos = (pontos game) +1, posicaoInim = ((geradorPosX (tempo game)),300)}
     else if (perder (posicaoInim game))
-        then game {tempo = (tempo game) + n, fim = True, start = False}
+        then game {tempo = (tempo game) + n, fim = True, start = False, contadorPosInimigo = 0, posicaoInim = ((geradorPosX (tempo game)),300)}
     else if (irEsquerda game)
         then game { tempo = (tempo game) + n, contadorPosInimigo = (contadorPosInimigo game) + 1, posicaoBloco = (moverX (posicaoBloco game) (-2)), posicaoInim = moverY (posicaoInim game) ((contadorPosInimigo game)*(nivel game))}
     else if (irDireita game)
