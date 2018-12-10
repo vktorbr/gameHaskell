@@ -26,7 +26,7 @@ window :: Display
 window = InWindow "Dodger" (width,height) (offset,offset)
 
 background :: Color
-background = white
+background = black
 
 drawing :: EstadoJogo -> Picture
 drawing game 
@@ -35,11 +35,22 @@ drawing game
  | otherwise = estadoRodando game
 
 fimJogo :: EstadoJogo -> Picture
-fimJogo game = 
-    translate (-300) 0 $
-    Scale 0.7 0.7 $
-    Color red $
-    Text "Fim de jogo!!"
+fimJogo game = pictures [
+        textoFim,
+        textoVoltar
+    ]
+    where
+        textoFim = 
+            translate (-300) 0 $
+            Scale 0.7 0.7 $
+            Color red $
+            Text "Fim de jogo!!"
+
+        textoVoltar =
+            translate (-200) (-200) $
+            Scale 0.2 0.2 $
+            Color orange $
+            Text "Aperte \" r \" para voltar ou menu"
 
 estadoRodando :: EstadoJogo -> Picture
 estadoRodando game = pictures [
@@ -59,7 +70,7 @@ estadoRodando game = pictures [
         pontoAtual =
             translate 280 180 $
             Scale 0.5 0.5 $
-            Color red $
+            Color green $
             Text (show (pontos game)) 
         
         posIniX = 0
@@ -89,6 +100,7 @@ menu game = pictures [
         pontuacao = 
             translate (-100) 0 $
             Scale 0.2 0.2 $
+            Color orange $
             Text ("Recorde: " ++ show(recorde game)) 
         
         botaoInicial = translate 0 (-150) $ pictures [
@@ -106,7 +118,7 @@ estadoInicial = Game {
     , recorde = 0
     , start = False
     , fim = False
-    , posicaoBloco = ((-150),(-200))
+    , posicaoBloco = (0,(-200))
     , tempo =0
     , contadorPosInimigo =0
     , posicaoInim = (0,300)
@@ -115,7 +127,7 @@ estadoInicial = Game {
     }
 
 evento :: Event -> EstadoJogo -> EstadoJogo
-evento (EventKey (SpecialKey KeySpace) (Down) _ _) game = game {posicaoBloco = ((-150),(-200)), pontos = 0, posicaoInim = ((geradorPosX (tempo game),300)), contadorPosInimigo =0, start = True}
+evento (EventKey (SpecialKey KeySpace) (Down) _ _) game = game {posicaoBloco = (0,(-200)), pontos = 0, posicaoInim = ((geradorPosX (tempo game),300)), contadorPosInimigo =0, start = True}
 --evento (EventKey (Char 'p') _ _ _) game = game {start = False}
 evento (EventKey (Char 'r') _ _ _) game = game {start = False, fim = False, recorde = max (recorde game) (pontos game)}
 evento (EventKey (SpecialKey KeyLeft) (Down) _ _) game = game {irEsquerda = True}
