@@ -6,13 +6,6 @@ import Graphics.Gloss.Interface.Pure.Game
 
 import FuncoesAux
 
-width, height, offset :: Int
-width = 800
-height = 500
-offset = 250
---posBloco :: Point
---posBloco = ((-150),(-200))
-
 data EstadoJogo = Game
  {
     pontos :: Float
@@ -44,8 +37,8 @@ drawing game
 
 fimJogo :: EstadoJogo -> Picture
 fimJogo game = 
-    translate 0 0 $
-    Scale 1 1 $
+    translate (-300) 0 $
+    Scale 0.7 0.7 $
     Color red $
     Text "Fim de jogo!!"
 
@@ -128,7 +121,7 @@ estadoInicial = Game {
 
 
 evento :: Event -> EstadoJogo -> EstadoJogo
-evento (EventKey (SpecialKey KeySpace) (Down) _ _) game = game {posicaoBloco = ((-150),(-200)), pontos = 0, gerarInimigoPosX = (toFloat((mod (toInt(tempo game) * 100) 800)-400)), tempoInicio =0, start = True, tempo = 0}
+evento (EventKey (SpecialKey KeySpace) (Down) _ _) game = game {posicaoBloco = ((-150),(-200)), pontos = 0, gerarInimigoPosX = geradorPosX (tempo game), posicaoInim = ((gerarInimigoPosX game),300), tempoInicio =0, start = True, tempo = 0}
 evento (EventKey (Char 'p') _ _ _) game = game {start = False}
 evento (EventKey (Char 'q') _ _ _) game = game {nivel = (nivel game) + 1}
 evento (EventKey (SpecialKey KeyLeft) (Down) _ _) game = game {irEsquerda = True}
@@ -144,11 +137,13 @@ atualizar n game =
         else if (colidir (posicaoBloco game) (posicaoInim game))
             then game {fim = True, start = False}
         else if (irEsquerda game)
-            then game {pontos = (pontos game) +1 , tempo = (tempo game) + n, tempoInicio = (tempoInicio game) + 1, posicaoBloco = (moverX (posicaoBloco game) (-2)), posicaoInim = ((gerarInimigoPosX game),((300 - (tempoInicio game))))}
+            then game {pontos = (pontos game) +1 , tempo = (tempo game) + n, tempoInicio = (tempoInicio game) + 1, posicaoBloco = (moverX (posicaoBloco game) (-2)), posicaoInim = moverY (posicaoInim game) (tempoInicio game)}
         else if (irDireita game)
-            then game {pontos = (pontos game) +1 , tempo = (tempo game) + n, tempoInicio = (tempoInicio game) + 1, posicaoBloco = (moverX (posicaoBloco game) (2)), posicaoInim = ((gerarInimigoPosX game),((300 - (tempoInicio game))))}
+            then game {pontos = (pontos game) +1 , tempo = (tempo game) + n, tempoInicio = (tempoInicio game) + 1, posicaoBloco = (moverX (posicaoBloco game) (2)), posicaoInim = moverY (posicaoInim game) (tempoInicio game)}
+        else if (start game)==False
+            then game
         else
-            game {pontos = (pontos game) +1 , tempo = (tempo game) + n, tempoInicio = (tempoInicio game) + 1, posicaoInim = ((gerarInimigoPosX game),((300 - (tempoInicio game))))}
+            game {pontos = (pontos game) +1 , tempo = (tempo game) + n, tempoInicio = (tempoInicio game) + 1, posicaoInim = moverY (posicaoInim game) (tempoInicio game)}
 
 
 main :: IO ()

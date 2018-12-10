@@ -1,5 +1,8 @@
 --Modulo para as funcoes auxiliares
 module FuncoesAux (
+    width,
+    height,
+    offset,
     toInt,
     toFloat,
     posBlocoLim,
@@ -7,10 +10,18 @@ module FuncoesAux (
     posIniLim,
     colidirEixo,
     colidir,
-    moverX
+    moverX,
+    moverY,
+    geradorPosX
 ) where
 
 import Graphics.Gloss
+
+
+width, height, offset :: Int
+width = 800
+height = 500
+offset = 250
 
 toInt :: Float -> Int
 toInt x = round x
@@ -20,8 +31,8 @@ toFloat x = fromIntegral x
 
 posBlocoLim :: Float -> Float
 posBlocoLim x 
- | x >= 400 = 390
- | x <= (-400) = (-390)
+ | x >= (toFloat(width)/2) = 385
+ | x <= (-(toFloat(width)/2)) = (-385)
  | otherwise = x
 
 posIniX :: Float
@@ -29,9 +40,8 @@ posIniX = 0
 
 posIniLim :: Float -> Bool
 posIniLim x
- | x < (-250) = True
+ | x <= (-(toFloat(width)/2)) = True
  | otherwise = False
-
 
 colidirEixo :: Float -> Float -> Bool
 colidirEixo bloco inimigo = ((inimigo - 20) < (bloco + 25)) && ((inimigo + 20) > (bloco - 25))
@@ -41,4 +51,9 @@ colidir (xBloco, yBloco) (xInimigo, yInimigo) = ((colidirEixo xBloco xInimigo) &
 
 moverX :: Point -> Float -> Point
 moverX (x,y) n = (posBlocoLim((x + n)),(-200))
-    
+
+moverY :: Point -> Float -> Point
+moverY (x,y) n = (x,300-n)
+   
+geradorPosX :: Float -> Float
+geradorPosX t = (toFloat((mod (toInt(t) * 100) 800)-400))
