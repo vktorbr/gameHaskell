@@ -32,7 +32,7 @@ bloco posicaoBloco =
         (x,y) = posicaoBloco
 
 pontoAtual pontos =
-    translate 350 180 $
+    translate 300 180 $
     Scale 0.5 0.5 $
     Color green $
     Text (show pontos) 
