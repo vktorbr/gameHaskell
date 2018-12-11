@@ -45,7 +45,7 @@ speedAlimentar vel = do
             else putMVar vel (s+5)
         else do
             putMVar vel s
-    threadDelay 1000000
+    threadDelay 500000
     speedAlimentar vel
 
 
